@@ -23,6 +23,15 @@ contract ProofOfGrind is ERC721Enumerable, Ownable {
 
     // ============ State Variables ============
     uint256 private _tokenIdCounter;
+    uint256 public constant GRIND_COOLDOWN = 1 hours;
+    uint256 public constant STREAK_WINDOW = 25 hours;
+
+    // Tier thresholds
+    uint256 public constant TIER_BRONZE = 0;
+    uint256 public constant TIER_SILVER = 10;
+    uint256 public constant TIER_GOLD = 50;
+    uint256 public constant TIER_DIAMOND = 100;
+    uint256 public constant TIER_LEGEND = 500;
 
     mapping(uint256 => address) public tokenToGrinder;
     mapping(address => GrinderStats) public grinders;
