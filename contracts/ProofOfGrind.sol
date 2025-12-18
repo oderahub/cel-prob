@@ -189,6 +189,32 @@ contract ProofOfGrind is ERC721Enumerable, Ownable {
         return 0; // Not on leaderboard
     }
 
+    // ============ On-chain SVG Metadata ============
+
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        require(tokenId > 0 && tokenId <= _tokenIdCounter, "Invalid token");
+
+        address grinder = tokenToGrinder[tokenId];
+        GrinderStats memory stats = grinders[grinder];
+        string memory tierName = getTierName(stats.tier);
+
+        string memory svg = _generateSVG(stats, tierName);
+
+        string memory json = Base64.encode(bytes(string(abi.encodePacked(
+            '{"name": "Proof of Grind #', tokenId.toString(),
+            '", "description": "On-chain proof of your grind on Celo. Keep grinding to level up!',
+            '", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(svg)),
+            '", "attributes": [',
+            '{"trait_type": "Tier", "value": "', tierName, '"},',
+            '{"trait_type": "Total Grinds", "value": ', stats.totalGrinds.toString(), '},',
+            '{"trait_type": "Best Streak", "value": ', stats.bestStreak.toString(), '},',
+            '{"trait_type": "Points", "value": ', stats.points.toString(), '}',
+            ']}'
+        ))));
+
+        return string(abi.encodePacked("data:application/json;base64,", json));
+    }
+
     // ============ Internal Functions ============
 
     function _calculateTier(uint256 totalGrinds) internal pure returns (uint256) {
