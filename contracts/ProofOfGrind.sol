@@ -71,4 +71,45 @@ contract ProofOfGrind is ERC721Enumerable, Ownable {
 
         emit NFTMinted(msg.sender, tokenId);
     }
+
+    /**
+     * @notice Record a grind session - generates transaction activity!
+     * @dev Can be called once per hour, maintains streak if within 25h
+     */
+    function grind() external {
+        require(balanceOf(msg.sender) > 0, "Mint first");
+
+        GrinderStats storage stats = grinders[msg.sender];
+        require(block.timestamp >= stats.lastGrindTime + GRIND_COOLDOWN, "Cooldown active");
+
+        // Check streak
+        if (stats.lastGrindTime > 0 && block.timestamp > stats.lastGrindTime + STREAK_WINDOW) {
+            stats.currentStreak = 0; // Streak broken
+        }
+
+        stats.totalGrinds++;
+        stats.currentStreak++;
+        stats.lastGrindTime = block.timestamp;
+
+        // Update best streak
+        if (stats.currentStreak > stats.bestStreak) {
+            stats.bestStreak = stats.currentStreak;
+        }
+
+        // Calculate points (streak multiplier)
+        uint256 pointsEarned = 10 + (stats.currentStreak * 2);
+        stats.points += pointsEarned;
+
+        emit Grinded(msg.sender, stats.totalGrinds, stats.currentStreak, stats.points);
+    }
+
+    // ============ Internal Functions ============
+
+    function _calculateTier(uint256 totalGrinds) internal pure returns (uint256) {
+        if (totalGrinds >= TIER_LEGEND) return TIER_LEGEND;
+        if (totalGrinds >= TIER_DIAMOND) return TIER_DIAMOND;
+        if (totalGrinds >= TIER_GOLD) return TIER_GOLD;
+        if (totalGrinds >= TIER_SILVER) return TIER_SILVER;
+        return TIER_BRONZE;
+    }
 }
