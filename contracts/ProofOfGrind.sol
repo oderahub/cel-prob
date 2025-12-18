@@ -152,6 +152,43 @@ contract ProofOfGrind is ERC721Enumerable, Ownable {
         emit Grinded(msg.sender, stats.totalGrinds, stats.currentStreak, stats.points);
     }
 
+    // ============ View Functions ============
+
+    function getGrinderStats(address grinder) external view returns (GrinderStats memory) {
+        return grinders[grinder];
+    }
+
+    function canGrind(address grinder) external view returns (bool) {
+        if (balanceOf(grinder) == 0) return false;
+        return block.timestamp >= grinders[grinder].lastGrindTime + GRIND_COOLDOWN;
+    }
+
+    function getTimeUntilNextGrind(address grinder) external view returns (uint256) {
+        if (balanceOf(grinder) == 0) return 0;
+        uint256 nextGrindTime = grinders[grinder].lastGrindTime + GRIND_COOLDOWN;
+        if (block.timestamp >= nextGrindTime) return 0;
+        return nextGrindTime - block.timestamp;
+    }
+
+    function getTierName(uint256 tier) public pure returns (string memory) {
+        if (tier >= TIER_LEGEND) return "LEGEND";
+        if (tier >= TIER_DIAMOND) return "DIAMOND";
+        if (tier >= TIER_GOLD) return "GOLD";
+        if (tier >= TIER_SILVER) return "SILVER";
+        return "BRONZE";
+    }
+
+    function getTopGrinders() external view returns (address[] memory) {
+        return topGrinders;
+    }
+
+    function getLeaderboardPosition(address grinder) external view returns (uint256) {
+        for (uint256 i = 0; i < topGrinders.length; i++) {
+            if (topGrinders[i] == grinder) return i + 1;
+        }
+        return 0; // Not on leaderboard
+    }
+
     // ============ Internal Functions ============
 
     function _calculateTier(uint256 totalGrinds) internal pure returns (uint256) {
