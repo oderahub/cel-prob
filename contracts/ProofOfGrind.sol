@@ -13,6 +13,7 @@ import "@openzeppelin/contracts/utils/Base64.sol";
  * @notice Built for Celo Builder Rewards - maximize transactions & engagement
  */
 contract ProofOfGrind is ERC721Enumerable, Ownable {
+    using Strings for uint256;
     // ============ Structs ============
     struct GrinderStats {
         uint256 totalGrinds;
