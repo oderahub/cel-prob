@@ -1,0 +1,29 @@
+{
+  "name": "celo-proof-of-grind",
+  "version": "1.0.0",
+  "description": "Free-mint NFT with grind tiers, streaks, and leaderboard for Celo Builder Rewards",
+  "scripts": {
+    "compile": "hardhat compile",
+    "test": "hardhat test",
+    "deploy:alfajores": "hardhat run scripts/deploy.js --network alfajores",
+    "deploy:celo": "hardhat run scripts/deploy.js --network celo",
+    "verify:alfajores": "hardhat run scripts/verify.js --network alfajores",
+    "verify:celo": "hardhat run scripts/verify.js --network celo"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.0.0",
+    "dotenv": "^16.3.1"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^4.0.0",
+    "hardhat": "^2.22.0"
+  },
+  "keywords": [
+    "celo",
+    "nft",
+    "proof-of-grind",
+    "builder-rewards"
+  ],
+  "author": "Chidera",
+  "license": "MIT"
+}
