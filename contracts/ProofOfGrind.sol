@@ -4,6 +4,8 @@ pragma solidity ^0.8.20;
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721Enumerable.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/utils/Base64.sol";
 
 /**
  * @title ProofOfGrind
@@ -11,6 +13,7 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * @notice Built for Celo Builder Rewards - maximize transactions & engagement
  */
 contract ProofOfGrind is ERC721Enumerable, Ownable {
+    using Strings for uint256;
     // ============ Structs ============
     struct GrinderStats {
         uint256 totalGrinds;
@@ -149,6 +152,69 @@ contract ProofOfGrind is ERC721Enumerable, Ownable {
         emit Grinded(msg.sender, stats.totalGrinds, stats.currentStreak, stats.points);
     }
 
+    // ============ View Functions ============
+
+    function getGrinderStats(address grinder) external view returns (GrinderStats memory) {
+        return grinders[grinder];
+    }
+
+    function canGrind(address grinder) external view returns (bool) {
+        if (balanceOf(grinder) == 0) return false;
+        return block.timestamp >= grinders[grinder].lastGrindTime + GRIND_COOLDOWN;
+    }
+
+    function getTimeUntilNextGrind(address grinder) external view returns (uint256) {
+        if (balanceOf(grinder) == 0) return 0;
+        uint256 nextGrindTime = grinders[grinder].lastGrindTime + GRIND_COOLDOWN;
+        if (block.timestamp >= nextGrindTime) return 0;
+        return nextGrindTime - block.timestamp;
+    }
+
+    function getTierName(uint256 tier) public pure returns (string memory) {
+        if (tier >= TIER_LEGEND) return "LEGEND";
+        if (tier >= TIER_DIAMOND) return "DIAMOND";
+        if (tier >= TIER_GOLD) return "GOLD";
+        if (tier >= TIER_SILVER) return "SILVER";
+        return "BRONZE";
+    }
+
+    function getTopGrinders() external view returns (address[] memory) {
+        return topGrinders;
+    }
+
+    function getLeaderboardPosition(address grinder) external view returns (uint256) {
+        for (uint256 i = 0; i < topGrinders.length; i++) {
+            if (topGrinders[i] == grinder) return i + 1;
+        }
+        return 0; // Not on leaderboard
+    }
+
+    // ============ On-chain SVG Metadata ============
+
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        require(tokenId > 0 && tokenId <= _tokenIdCounter, "Invalid token");
+
+        address grinder = tokenToGrinder[tokenId];
+        GrinderStats memory stats = grinders[grinder];
+        string memory tierName = getTierName(stats.tier);
+
+        string memory svg = _generateSVG(stats, tierName);
+
+        string memory json = Base64.encode(bytes(string(abi.encodePacked(
+            '{"name": "Proof of Grind #', tokenId.toString(),
+            '", "description": "On-chain proof of your grind on Celo. Keep grinding to level up!',
+            '", "image": "data:image/svg+xml;base64,', Base64.encode(bytes(svg)),
+            '", "attributes": [',
+            '{"trait_type": "Tier", "value": "', tierName, '"},',
+            '{"trait_type": "Total Grinds", "value": ', stats.totalGrinds.toString(), '},',
+            '{"trait_type": "Best Streak", "value": ', stats.bestStreak.toString(), '},',
+            '{"trait_type": "Points", "value": ', stats.points.toString(), '}',
+            ']}'
+        ))));
+
+        return string(abi.encodePacked("data:application/json;base64,", json));
+    }
+
     // ============ Internal Functions ============
 
     function _calculateTier(uint256 totalGrinds) internal pure returns (uint256) {
@@ -186,5 +252,32 @@ contract ProofOfGrind is ERC721Enumerable, Ownable {
                 break;
             }
         }
+    }
+
+    function _generateSVG(GrinderStats memory stats, string memory tierName) internal pure returns (string memory) {
+        string memory tierColor = _getTierColor(stats.tier);
+
+        return string(abi.encodePacked(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">',
+            '<defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">',
+            '<stop offset="0%" style="stop-color:#1a1a2e"/><stop offset="100%" style="stop-color:#16213e"/></linearGradient></defs>',
+            '<rect width="400" height="400" fill="url(#bg)"/>',
+            '<circle cx="200" cy="120" r="60" fill="', tierColor, '" opacity="0.8"/>',
+            '<text x="200" y="130" text-anchor="middle" fill="white" font-size="40" font-weight="bold">&#x1F4AA;</text>',
+            '<text x="200" y="220" text-anchor="middle" fill="', tierColor, '" font-size="28" font-weight="bold">', tierName, '</text>',
+            '<text x="200" y="260" text-anchor="middle" fill="#888" font-size="16">PROOF OF GRIND</text>',
+            '<text x="200" y="310" text-anchor="middle" fill="white" font-size="18">Grinds: ', stats.totalGrinds.toString(), '</text>',
+            '<text x="200" y="340" text-anchor="middle" fill="white" font-size="18">Best Streak: ', stats.bestStreak.toString(), '</text>',
+            '<text x="200" y="370" text-anchor="middle" fill="#FCFF52" font-size="18">Points: ', stats.points.toString(), '</text>',
+            '</svg>'
+        ));
+    }
+
+    function _getTierColor(uint256 tier) internal pure returns (string memory) {
+        if (tier >= TIER_LEGEND) return "#FF6B6B";
+        if (tier >= TIER_DIAMOND) return "#4ECDC4";
+        if (tier >= TIER_GOLD) return "#FFD93D";
+        if (tier >= TIER_SILVER) return "#C0C0C0";
+        return "#CD7F32";
     }
 }
