@@ -45,6 +45,7 @@ contract ProofOfGrind is ERC721Enumerable, Ownable {
     event NFTMinted(address indexed to, uint256 tokenId);
     event Grinded(address indexed grinder, uint256 totalGrinds, uint256 streak, uint256 points);
     event TierUp(address indexed grinder, uint256 newTier);
+    event NewTopGrinder(address indexed grinder, uint256 rank);
 
     // ============ Constructor ============
     constructor() ERC721("Proof of Grind", "GRIND") Ownable(msg.sender) {}
