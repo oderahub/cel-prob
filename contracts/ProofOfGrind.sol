@@ -36,6 +36,11 @@ contract ProofOfGrind is ERC721Enumerable, Ownable {
     mapping(uint256 => address) public tokenToGrinder;
     mapping(address => GrinderStats) public grinders;
 
+    // Leaderboard
+    address[] public topGrinders;
+    mapping(address => bool) public isTopGrinder;
+    uint256 public constant MAX_LEADERBOARD = 100;
+
     // ============ Events ============
     event NFTMinted(address indexed to, uint256 tokenId);
     event Grinded(address indexed grinder, uint256 totalGrinds, uint256 streak, uint256 points);
