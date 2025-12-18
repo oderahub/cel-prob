@@ -100,6 +100,13 @@ contract ProofOfGrind is ERC721Enumerable, Ownable {
         uint256 pointsEarned = 10 + (stats.currentStreak * 2);
         stats.points += pointsEarned;
 
+        // Check tier upgrade
+        uint256 newTier = _calculateTier(stats.totalGrinds);
+        if (newTier > stats.tier) {
+            stats.tier = newTier;
+            emit TierUp(msg.sender, newTier);
+        }
+
         emit Grinded(msg.sender, stats.totalGrinds, stats.currentStreak, stats.points);
     }
 
