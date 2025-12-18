@@ -253,4 +253,31 @@ contract ProofOfGrind is ERC721Enumerable, Ownable {
             }
         }
     }
+
+    function _generateSVG(GrinderStats memory stats, string memory tierName) internal pure returns (string memory) {
+        string memory tierColor = _getTierColor(stats.tier);
+
+        return string(abi.encodePacked(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400">',
+            '<defs><linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">',
+            '<stop offset="0%" style="stop-color:#1a1a2e"/><stop offset="100%" style="stop-color:#16213e"/></linearGradient></defs>',
+            '<rect width="400" height="400" fill="url(#bg)"/>',
+            '<circle cx="200" cy="120" r="60" fill="', tierColor, '" opacity="0.8"/>',
+            '<text x="200" y="130" text-anchor="middle" fill="white" font-size="40" font-weight="bold">&#x1F4AA;</text>',
+            '<text x="200" y="220" text-anchor="middle" fill="', tierColor, '" font-size="28" font-weight="bold">', tierName, '</text>',
+            '<text x="200" y="260" text-anchor="middle" fill="#888" font-size="16">PROOF OF GRIND</text>',
+            '<text x="200" y="310" text-anchor="middle" fill="white" font-size="18">Grinds: ', stats.totalGrinds.toString(), '</text>',
+            '<text x="200" y="340" text-anchor="middle" fill="white" font-size="18">Best Streak: ', stats.bestStreak.toString(), '</text>',
+            '<text x="200" y="370" text-anchor="middle" fill="#FCFF52" font-size="18">Points: ', stats.points.toString(), '</text>',
+            '</svg>'
+        ));
+    }
+
+    function _getTierColor(uint256 tier) internal pure returns (string memory) {
+        if (tier >= TIER_LEGEND) return "#FF6B6B";
+        if (tier >= TIER_DIAMOND) return "#4ECDC4";
+        if (tier >= TIER_GOLD) return "#FFD93D";
+        if (tier >= TIER_SILVER) return "#C0C0C0";
+        return "#CD7F32";
+    }
 }
