@@ -11,10 +11,21 @@ import "@openzeppelin/contracts/access/Ownable.sol";
  * @notice Built for Celo Builder Rewards - maximize transactions & engagement
  */
 contract ProofOfGrind is ERC721Enumerable, Ownable {
+    // ============ Structs ============
+    struct GrinderStats {
+        uint256 totalGrinds;
+        uint256 currentStreak;
+        uint256 bestStreak;
+        uint256 lastGrindTime;
+        uint256 tier;
+        uint256 points;
+    }
+
     // ============ State Variables ============
     uint256 private _tokenIdCounter;
 
     mapping(uint256 => address) public tokenToGrinder;
+    mapping(address => GrinderStats) public grinders;
 
     // ============ Events ============
     event NFTMinted(address indexed to, uint256 tokenId);
