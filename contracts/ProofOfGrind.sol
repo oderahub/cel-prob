@@ -48,6 +48,16 @@ contract ProofOfGrind is ERC721Enumerable, Ownable {
         _safeMint(msg.sender, tokenId);
         tokenToGrinder[tokenId] = msg.sender;
 
+        // Initialize grinder stats
+        grinders[msg.sender] = GrinderStats({
+            totalGrinds: 0,
+            currentStreak: 0,
+            bestStreak: 0,
+            lastGrindTime: 0,
+            tier: 0,
+            points: 0
+        });
+
         emit NFTMinted(msg.sender, tokenId);
     }
 }
