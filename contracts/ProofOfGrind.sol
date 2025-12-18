@@ -113,6 +113,9 @@ contract ProofOfGrind is ERC721Enumerable, Ownable {
             emit TierUp(msg.sender, newTier);
         }
 
+        // Update leaderboard
+        _updateLeaderboard(msg.sender);
+
         emit Grinded(msg.sender, stats.totalGrinds, stats.currentStreak, stats.points);
     }
 
@@ -154,5 +157,34 @@ contract ProofOfGrind is ERC721Enumerable, Ownable {
         if (totalGrinds >= TIER_GOLD) return TIER_GOLD;
         if (totalGrinds >= TIER_SILVER) return TIER_SILVER;
         return TIER_BRONZE;
+    }
+
+    function _updateLeaderboard(address grinder) internal {
+        // Simple insertion sort for leaderboard
+        if (!isTopGrinder[grinder]) {
+            if (topGrinders.length < MAX_LEADERBOARD) {
+                topGrinders.push(grinder);
+                isTopGrinder[grinder] = true;
+            } else {
+                // Check if grinder has more points than last place
+                address lastPlace = topGrinders[topGrinders.length - 1];
+                if (grinders[grinder].points > grinders[lastPlace].points) {
+                    isTopGrinder[lastPlace] = false;
+                    topGrinders[topGrinders.length - 1] = grinder;
+                    isTopGrinder[grinder] = true;
+                }
+            }
+        }
+
+        // Bubble up if needed
+        for (uint256 i = topGrinders.length; i > 1; i--) {
+            if (grinders[topGrinders[i-1]].points > grinders[topGrinders[i-2]].points) {
+                address temp = topGrinders[i-2];
+                topGrinders[i-2] = topGrinders[i-1];
+                topGrinders[i-1] = temp;
+            } else {
+                break;
+            }
+        }
     }
 }
