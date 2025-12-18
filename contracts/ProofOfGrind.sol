@@ -110,6 +110,36 @@ contract ProofOfGrind is ERC721Enumerable, Ownable {
         emit Grinded(msg.sender, stats.totalGrinds, stats.currentStreak, stats.points);
     }
 
+    /**
+     * @notice Boost another grinder - social engagement!
+     * @param grinder Address to boost
+     */
+    function boost(address grinder) external {
+        require(grinder != msg.sender, "Cannot self-boost");
+        require(balanceOf(grinder) > 0, "Target not a grinder");
+        require(balanceOf(msg.sender) > 0, "Must be a grinder to boost");
+
+        GrinderStats storage stats = grinders[grinder];
+        stats.points += 5;
+
+        // Booster also gets points
+        grinders[msg.sender].points += 2;
+    }
+
+    /**
+     * @notice Check in for daily bonus (separate from grind)
+     */
+    function dailyCheckIn() external {
+        require(balanceOf(msg.sender) > 0, "Mint first");
+
+        GrinderStats storage stats = grinders[msg.sender];
+
+        // Simple daily check-in bonus
+        stats.points += 25;
+
+        emit Grinded(msg.sender, stats.totalGrinds, stats.currentStreak, stats.points);
+    }
+
     // ============ Internal Functions ============
 
     function _calculateTier(uint256 totalGrinds) internal pure returns (uint256) {
