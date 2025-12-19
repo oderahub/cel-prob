@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useAccount, useReadContract, useWriteContract, useWaitForTransactionReceipt } from 'wagmi';
 import { formatEther } from 'viem';
 
-// Update this after deployment
-const CONTRACT_ADDRESS = 'YOUR_CONTRACT_ADDRESS_HERE';
+// Deployed on Celo Mainnet
+const CONTRACT_ADDRESS = '0xd305C380eE424584498B719c2c25b696AaC729e5';
 
 const ABI = [
   {
